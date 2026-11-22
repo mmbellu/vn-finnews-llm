@@ -1,0 +1,10 @@
+.env
+__pycache__/
+*.pyc
+outputs/
+wandb/
+data/raw/*.json
+data/raw/*.csv
+data/processed/*.jsonl
+*.gguf
+*.safetensors
