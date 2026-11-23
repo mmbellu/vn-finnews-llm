@@ -137,6 +137,7 @@ def main():
     parser.add_argument("--split", type=str, default="test", choices=["validation", "test"])
     parser.add_argument("--batch_size", type=int, default=8)
     parser.add_argument("--max_new_tokens", type=int, default=220)
+    parser.add_argument("--output_root", type=str, default="outputs")
     args = parser.parse_args()
 
     with open(args.config, "r", encoding="utf-8") as f:
