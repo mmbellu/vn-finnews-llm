@@ -8,7 +8,7 @@ import gradio as gr
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent / "src"))
 from schema import FinNewsOutput, SYSTEM_PROMPT
 
 MODEL_ID = os.environ.get("FINNEWS_MODEL_ID", "mmbellu/qwen3-4b-vn-finnews-merged")
