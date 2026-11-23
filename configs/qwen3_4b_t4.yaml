@@ -44,6 +44,10 @@ training:
   eval_steps: 50
   save_steps: 50
 
+data:
+  dataset_id: "mmbellu/vn-finnews-structured"
+  local_dir: "data/processed"
+
 hub:
-  adapter_repo_id: "your-hf-username/qwen3-4b-vn-finnews-lora"
-  merged_repo_id: "your-hf-username/qwen3-4b-vn-finnews-merged"
+  adapter_repo_id: "mmbellu/qwen3-4b-vn-finnews-lora"
+  merged_repo_id: "mmbellu/qwen3-4b-vn-finnews-merged"
