@@ -226,7 +226,7 @@ def main():
     metrics["peak_vram_gb"] = round(torch.cuda.max_memory_allocated(0) / (1024**3), 2)
 
     # 6. Lưu kết quả ra file JSON/JSONL
-    eval_dir = Path("outputs/eval")
+    eval_dir = Path(args.output_root) / "eval"
     eval_dir.mkdir(parents=True, exist_ok=True)
 
     with open(eval_dir / f"{args.run_name}_metrics.json", "w", encoding="utf-8") as f:
@@ -238,7 +238,7 @@ def main():
             f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     # 7. Ghi log lên TensorBoard (để so sánh các run sau này)
-    log_dir = Path("outputs/logs") / args.run_name
+    log_dir = Path(args.output_root) / "logs" / args.run_name
     writer = SummaryWriter(log_dir=str(log_dir))
     for k, v in metrics.items():
         if isinstance(v, (int, float)) and k != "num_samples":
