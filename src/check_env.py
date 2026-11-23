@@ -1,7 +1,7 @@
 import os
 import yaml
 import torch
-from torch.utils.tensorboard import SummaryWrite
+from torch.utils.tensorboard import SummaryWriter
 from huggingface_hub import HfApi
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
