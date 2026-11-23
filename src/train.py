@@ -106,6 +106,7 @@ def main():
     model = AutoModelForCausalLM.from_pretrained(
         base_model_id,
         quantization_config=bnb_config,
+        dtype=torch.float16,
         device_map="auto",
         token=hf_token,
     )
@@ -179,7 +180,7 @@ def main():
 
     sft_config = SFTConfig(**sft_kwargs)
 
-    # 6. Khởi tạo Trainer và bắt đầu huấn luyện
+  # 6. Khởi tạo Trainer và bắt đầu huấn luyện
     trainer = SFTTrainer(
         model=model,
         args=sft_config,
@@ -188,6 +189,18 @@ def main():
         processing_class=tokenizer,
         peft_config=peft_config,
     )
+
+    # Ép tham số trainable (LoRA) về float32 cho GradScaler trên T4 (fp16)
+    # và dọn sạch mọi tham số bfloat16 còn sót lại
+    for p in trainer.model.parameters():
+        if p.requires_grad:
+            if p.dtype != torch.float32:
+                p.data = p.data.to(torch.float32)
+        elif p.dtype == torch.bfloat16:
+            p.data = p.data.to(torch.float16)
+
+    trainable_dtypes = {p.dtype for p in trainer.model.parameters() if p.requires_grad}
+    print(f"[DTYPE] Kiểu dữ liệu tham số trainable: {trainable_dtypes}")
 
     print(f"\n=== BẮT ĐẦU TRAIN RUN: {run_name} ===")
     print(f"LoRA r={lora_r}, alpha={lora_alpha}, lr={lr}, targets={target_modules}")
@@ -198,7 +211,7 @@ def main():
     train_result = trainer.train()
     elapsed_min = (time.time() - t0) / 60.0
     peak_vram = torch.cuda.max_memory_allocated(0) / (1024**3)
-
+    
     # 7. Lưu Best Adapter, Tokenizer và Tóm tắt thí nghiệm
     trainer.save_model(str(final_adapter_dir))
     tokenizer.save_pretrained(str(final_adapter_dir))
