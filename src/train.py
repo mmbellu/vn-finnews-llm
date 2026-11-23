@@ -121,6 +121,14 @@ def main():
         target_modules=target_modules,
     )
 
+    # Tính sẵn warmup_steps (số nguyên) để tương thích mọi bản transformers/trl
+    eff_batch = (
+        cfg["training"]["per_device_train_batch_size"]
+        * cfg["training"]["gradient_accumulation_steps"]
+    )
+    total_steps = max(1, (len(train_ds) // eff_batch) * epochs)
+    warmup_steps = max(1, int(total_steps * float(cfg["training"]["warmup_ratio"])))
+
     # 5. Cấu hình SFTConfig tương thích chéo các bản trl/transformers
     sft_kwargs = dict(
         output_dir=str(run_dir),
@@ -131,7 +139,7 @@ def main():
         gradient_accumulation_steps=cfg["training"]["gradient_accumulation_steps"],
         learning_rate=lr,
         lr_scheduler_type=cfg["training"]["lr_scheduler_type"],
-        warmup_ratio=cfg["training"]["warmup_ratio"],
+        warmup_steps=warmup_steps,
         weight_decay=cfg["training"]["weight_decay"],
         max_grad_norm=cfg["training"]["max_grad_norm"],
         optim=cfg["training"]["optim"],
@@ -162,6 +170,12 @@ def main():
         sft_kwargs["completion_only_loss"] = True
     if "logging_dir" in sft_fields:
         sft_kwargs["logging_dir"] = str(tb_log_dir)
+
+    # Lọc an toàn để không văng TypeError nếu phiên bản trl mới bỏ bớt trường nào đó
+    skipped = [k for k in sft_kwargs if k not in sft_fields]
+    if skipped:
+        print(f"[INFO] Bỏ qua tham số không tồn tại trong bản trl hiện tại: {skipped}")
+    sft_kwargs = {k: v for k, v in sft_kwargs.items() if k in sft_fields}
 
     sft_config = SFTConfig(**sft_kwargs)
 
